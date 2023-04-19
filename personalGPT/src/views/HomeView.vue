@@ -1,23 +1,26 @@
 <template>
   <a-layout style="min-height: 100vh">
     <a-layout-sider v-model:collapsed="collapsed" collapsible>
-      <h1 style="color:aliceblue; margin-left: 24px; font-size: 24px; font-family: 'Righteous', sans-serif; margin-top: 30px; margin-bottom: 30px;">
-        PersonalGPT
-      </h1>
       <a-menu 
       v-if="!initLoading && !keyRequired" 
       v-model:selectedKeys="selectedKeys" 
       theme="dark" 
       mode="inline"
       >
+        <h1 class="menuTitle">
+          PersonalGPT
+          <span>
+            <a @click="openKeyEditionModal">
+              <KeyOutlined />
+            </a>
+          </span>
+        </h1>
+        <a-button class="add_more_school_button" @click="openCreationModal">
+          + New chat
+        </a-button>
         <a-menu-item v-for="(chat, index) in conversationList"  :key="index" @click="getConversationById(chat.id)">
             <CommentOutlined style="font-size: 22px;" />
             <span>{{chat.name}}</span>
-        </a-menu-item>
-        <a-menu-item @click="openCreationModal">
-          <a>
-            + New chat
-          </a>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -27,23 +30,23 @@
         <div :style="{ padding: '24px', background: '#202020', minHeight: '360px' }">
           <div v-if="keyRequired" class="inputKeyContainer">
             <a-input-group compact>
-              <h1 style="color: aliceblue; font-size: 32px; font-family: 'Righteous', sans-serif;">
+              <h1 style="color: aliceblue; font-size: 32px;">
                 Enter your OpenAI API Key to start using the personalGPT ...
               </h1>
               <a-input v-model:value="openaiKey" style="width: calc(100% - 200px)" />
-              <a-button type="primary" style="height: 48px;"  @click="checkIfKeyIsValid">Set Key</a-button>
+              <a-button type="primary" style="height: 48px;"  @click="checkIfKeyIsValid(openaiKey)">Set Key</a-button>
             </a-input-group>
           </div>
           <a-row style="max-width: 1200px; margin:auto;" v-if="!keyRequired">
-            <a style="font-size: 32px; margin-left: auto;" @click="openDeleteModal">
+            <a style="font-size: 24px; margin-left: auto;" @click="openDeleteModal">
               <CloseCircleFilled />
               Delete
             </a>
-            <a style="font-size: 32px; margin-left: 64px;" @click="openEditionModal">
+            <a style="font-size: 24px; margin-left: 64px;" @click="openEditionModal">
               <ToolFilled />
               Edit
             </a>
-            <a style="font-size: 32px; margin-left: 64px;" @click="downloadConversation">
+            <a style="font-size: 24px; margin-left: 64px;" @click="downloadConversation">
               <DownloadOutlined />
               Download
             </a>
@@ -58,29 +61,49 @@
           >
             <template #renderItem="{ item }">
               <a-list-item>
-                <template #actions>
-                  <a @click="copyContent(item.content)">Copy</a>
+                <template #actions v-if="editedMessageIndex != item.index">
+                  <a v-if="item.role == 'user'" @click="editMessage(item.index)">
+                    <FormOutlined />
+                  </a>
+                  <a @click="copyContent(item.content)">
+                    <CopyOutlined />
+                  </a>
                 </template>
-                <a-skeleton avatar :title="false" :loading="!!item.loading" active>
+                <template #actions v-else>
+                  <a @click="saveMessage(item.index)">
+                    <SaveOutlined />
+                  </a>
+                  <a @click="cancelMessageEdition">
+                    <CloseOutlined />
+                  </a>
+                </template>
+                <a-skeleton avatar :title="false" :loading="initLoading" active>
                   <a-list-item-meta
                     :description="item.content"
+                    v-if="editedMessageIndex != item.index"
                   >
                     <template #title>
-                      <a href="https://www.antdv.com/">{{ item.role }}</a>
+                      <a>{{ item.role }}</a>
                     </template>
                     <template #avatar>
                       <a-avatar v-if="item.role == 'user'" src="https://cdn-icons-png.flaticon.com/512/219/219986.png" />
                       <a-avatar v-else src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKP4lkDz9ShKLBPncE3VzTovit94Xv_XanI3WpCeh0Agt3vGBD1imjGdOrbAp_rrIwCC4&usqp=CAU" />
                     </template>
                   </a-list-item-meta>
+                  <div v-else style="width: 100%;">
+                    <a-textarea
+                      v-model:value="editedMessageContent"
+                      auto-size
+                    />
+                  </div>
                 </a-skeleton>
               </a-list-item>
             </template>
           </a-list>
           <div class="inputContainer" v-if="!keyRequired">
             <a-input-group compact>
-              <a-input v-model:value="question" style="width: calc(100% - 200px)" />
-              <a-button type="primary" style="height: 48px;"  @click="askQuestion(question)">Submit</a-button>
+              <a-textarea id="questionInput" v-model:value="question" style="width: calc(100% - 200px)" auto-size/>
+              <a-button id="questionInputButton" type="primary" style="height: 48px;"  @click="askQuestion(question)">Submit</a-button>
             </a-input-group>
           </div>
         </div>
@@ -90,6 +113,9 @@
       </a-layout-footer>
       <div class="backArrow">
         <UpOutlined @click="scrollToTop" />
+      </div>
+      <div class="upArrow">
+        <DownOutlined @click="scrollToBottom" />
       </div>
     </a-layout>
   </a-layout>
@@ -114,16 +140,28 @@
       </a-form-item>
     </a-form>
   </a-modal>
+  <a-modal v-model:visible="keyEditionVisible" title="OpenAI Key" @ok="handleKeyEdition">
+    <a-form :form="form" layout="vertical">
+      <a-form-item label="Modify your OpenAI Key">
+        <a-input v-model:value="newKey" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
   <div class="loading" v-if="initLoading || waitingForResponse">
     <img src="../assets/loading.gif" />
   </div>
 </template>
 <script>
-import { CommentOutlined, ToolFilled, MenuFoldOutlined, MenuOutlined, DownloadOutlined, UpOutlined } from '@ant-design/icons-vue';
+import { CommentOutlined, ToolFilled, DownloadOutlined, UpOutlined, DownOutlined, CopyOutlined, FormOutlined, SaveOutlined, CloseOutlined, KeyOutlined } from '@ant-design/icons-vue';
 import CloseCircleFilled from '@ant-design/icons-vue/lib/icons/CloseCircleFilled';
 import { message } from 'ant-design-vue';
 import { getConversation, updateConversation, deleteConversation, getAllConversations, createConversation, changeConversationName, downloadConversation } from '../api/api.js'
 export default {
+  watch: {
+    question: function(newVal, oldVal) {
+      this.justifyInputPosition();
+    }
+  },
   data() {
     return {
       collapsed: false,
@@ -133,27 +171,67 @@ export default {
       conversation: [],
       currentConversationId: 0,
       currentConversationName: "",
+      editedMessageIndex: -1,
+      editedMessageContent: "",
       conversationList: [],
       question: "",
       creationVisible: false,
       editionVisible: false,
       deleteVisible: false,
+      keyEditionVisible: false,
       conversationName: "",
       waitingForResponse: false,
       openaiKey: null,
-      keyRequired: false
+      newKey: null,
     }
   },
   components: {
     CommentOutlined,
     ToolFilled,
-    MenuFoldOutlined,
-    MenuOutlined,
     DownloadOutlined,
     CloseCircleFilled,
     UpOutlined,
+    CopyOutlined,
+    DownOutlined,
+    FormOutlined,
+    SaveOutlined,
+    CloseOutlined,
+    KeyOutlined
 },
   methods: {
+    justifyInputPosition() {
+      if (this.question == "") {
+        const questionInputButton = document.getElementById("questionInputButton");
+        questionInputButton.style.marginTop = "0px";
+        return;
+      }
+      // get the questionInput element height
+      const questionInput = document.getElementById("questionInput");
+      const questionInputHeight = questionInput.offsetHeight;
+      // get inputContainer element
+      const inputContainer = document.getElementsByClassName("inputContainer")[0];
+      // change the position of inputContainer to bottom: 90px + questionInputHeight - 48px
+      inputContainer.style.bottom = `${90 + questionInputHeight - 48}px`;
+      // get questionInputButton element
+      const questionInputButton = document.getElementById("questionInputButton");
+      // change the position of questionInputButton to bottom: 90px + questionInputHeight - 48px
+      questionInputButton.style.marginTop = `${questionInputHeight - 48}px`;
+    },
+    editMessage(index) {
+      this.editedMessageContent = this.conversation[index].content;
+      this.editedMessageIndex = index;
+    },
+    async saveMessage(index) {
+      // remove all the conversation after the edited message
+      this.conversation.splice(index, this.conversation.length - index);
+      // ask the question
+      await this.askQuestion(this.editedMessageContent);
+      // reset the edited message index
+      this.editedMessageIndex = -1;
+    },
+    cancelMessageEdition() {
+      this.editedMessageIndex = -1;
+    },
     scrollToTop() {
       // scroll to top
       window.scrollTo({
@@ -164,7 +242,7 @@ export default {
     scrollToBottom() {
       // y scroll by 1300px
       window.scrollBy({
-        top: 13000000000000,
+        top: 9999999,
         behavior: "smooth"
       });
     },
@@ -182,6 +260,11 @@ export default {
       // get current conversation name
       this.conversationName = "";
       this.deleteVisible = true;
+    },
+    openKeyEditionModal() {
+      // get the current openai key and set it to new key
+      this.newKey = this.openaiKey;
+      this.keyEditionVisible = true;
     },
     async handleCreation() {
       let res = await createConversation(this.conversationName);
@@ -221,6 +304,24 @@ export default {
         message.error("Network error!")
       }
     },
+    async handleKeyEdition() {
+      // check if the new key is valid
+      if (this.newKey === null || this.newKey === "") {
+        message.error("Key is empty!");
+        return;
+      }
+      else {
+        let res = await this.checkIfKeyIsValid(this.newKey);
+        if (res) {
+          message.success("Key is updated!");
+          this.openaiKey = this.newKey;
+          this.keyEditionVisible = false;
+        }
+        else {
+          return;
+        }
+      }
+    },
     async downloadConversation() {
       await downloadConversation(this.currentConversationId);
     },
@@ -230,10 +331,16 @@ export default {
       message.success("Copied to clipboard!");
     },
     async getConversationById(id) {
+      // clean up the question
+      this.question = "";
       let res = await getConversation(id);
       if (res.status === 200) {
         let data = await res.json();
         this.conversation = data.conversation;
+        // go through each message and add a index
+        for (let i = 0; i < this.conversation.length; i++) {
+          this.conversation[i].index = i;
+        }
         this.currentConversationId = data.id;
         this.currentConversationName = data.name;
       }
@@ -286,6 +393,11 @@ export default {
       this.scrollToBottom();
     },
     async askOpenAi(conversation) {
+        // remove the index for each message in conversation
+        conversation = conversation.map((message) => {
+          delete message.index;
+          return message;
+        })
         const BASE_URL = "https://api.openai.com/v1"
         const response = await fetch(`${BASE_URL}/chat/completions`, {
         method: "POST",
@@ -303,24 +415,24 @@ export default {
       const data = await response.json()
       return data.choices[0].message.content;
     },
-    async checkIfKeyIsValid() {
+    async checkIfKeyIsValid(key) {
       // check if the openai key is valid by call openai api
       const BASE_URL = "https://api.openai.com/v1"
       const response = await fetch(`${BASE_URL}/engines`, {
         method: "GET",
         headers: new Headers({
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.openaiKey}`,
+            Authorization: `Bearer ${key}`,
           }),
       })
       const data = await response.json()
       if ("error" in data) {
         message.error("Invalid OpenAI key!");
-        return;
+        return false;
       }
       else {
         // set openai key to cookie
-        this.$cookies.set('openaiKey', this.openaiKey);
+        this.$cookies.set('openaiKey', key);
         message.success("Welcome!");
         this.keyRequired = false;
         // refresh conversation list
@@ -330,6 +442,7 @@ export default {
           this.selectedKeys = [this.conversationList[0].id];
           await this.getConversationById(this.selectedKeys[0]);
         }
+        return true;
       }
     },
     async refreshConversationList() {
@@ -348,7 +461,6 @@ export default {
       this.openaiKey = this.$cookies.get('openaiKey');
       if (this.openaiKey === null) {
         // openai key is not set
-        message.error("OpenAI key is not set!");
         this.keyRequired = true;
         return;
       }
@@ -365,8 +477,8 @@ export default {
     // scroll to bottom
     this.scrollToBottom();
   },
+  mounted() {
+    this.justifyInputPosition();
+  },
 }
 </script>
-<style>
-  
-</style>
