@@ -109,12 +109,12 @@
         </div>
       </a-layout-content>
       <a-layout-footer style="text-align: center">
-        ©2023
+        stevewu ©2023
       </a-layout-footer>
-      <div class="backArrow">
+      <div class="backArrow" v-if="!keyRequired">
         <UpOutlined @click="scrollToTop" />
       </div>
-      <div class="upArrow">
+      <div class="upArrow" v-if="!keyRequired">
         <DownOutlined @click="scrollToBottom" />
       </div>
     </a-layout>
@@ -183,6 +183,7 @@ export default {
       waitingForResponse: false,
       openaiKey: null,
       newKey: null,
+      keyRequired: false
     }
   },
   components: {
@@ -200,7 +201,10 @@ export default {
 },
   methods: {
     justifyInputPosition() {
-      if (this.question == "") {
+      if (this.keyRequired) {
+        return;
+      }
+      else if (this.question == "") {
         const questionInputButton = document.getElementById("questionInputButton");
         questionInputButton.style.marginTop = "0px";
         return;
