@@ -1,0 +1,151 @@
+.ant-layout-content {
+  background-color: #202020;
+  color:aliceblue;
+}
+
+.ant-layout-sider {
+  background-color: #121212;
+}
+
+.ant-menu-dark .ant-menu-sub, .ant-menu.ant-menu-dark, .ant-menu.ant-menu-dark .ant-menu-sub {
+  background-color: #121212;
+}
+
+.ant-layout-sider-trigger {
+  background-color: #202020;
+}
+
+.ant-layout-footer {
+  background-color: #202020;
+  color:aliceblue;
+  font-family: 'Righteous', sans-serif;
+}
+
+.ant-empty-description {
+  color:aliceblue;
+  font-family: 'Righteous', sans-serif;
+}
+
+.ant-list-item-meta-title a {
+  color:aliceblue;
+  font-size: 24px;
+  font-family: 'Righteous', sans-serif;
+}
+
+.ant-list-item-meta-description {
+  color:aliceblue;
+}
+
+.ant-menu-title-content {
+  font-size: 22px;
+  background-color: #202020;
+  border-radius: 10px;
+  padding-left: 10px;
+}
+
+.ant-menu-title-content:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.ant-menu-dark.ant-menu-dark:not(.ant-menu-horizontal) .ant-menu-item-selected {
+  background-color: #121212;
+}
+
+.ant-menu-dark.ant-menu-dark:not(.ant-menu-horizontal) .ant-menu-item-selected .ant-menu-title-content {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.inputContainer {
+  position: fixed;
+  bottom: 90px;
+  width: calc(100% - 200px);
+}
+
+.inputKeyContainer {
+  position: fixed;
+  top: 50%;
+  width: calc(100% - 200px);
+}
+
+.ant-input-group {
+  max-width: 1200px;
+  margin: auto;
+  height: 48px;
+}
+
+.ant-input {
+  height: 48px;
+  border-radius: 10px;
+  color:#202020;
+  font-size: 24px;
+  font-family: 'Righteous', sans-serif;
+}
+
+.chat-list {
+  max-height: 1300px;
+  max-width: 1200px;
+  margin: auto;
+  margin-bottom: 250px;
+}
+
+.chat-list::-webkit-scrollbar {
+  width: 0px;
+}
+
+.ant-layout-sider .ant-layout-sider-dark .ant-layout-sider-has-trigger {
+  flex: 0 0 256px;
+}
+
+.ant-modal-content {
+  background-color: #333;
+  color:aliceblue;
+  border-radius: 10px;
+  box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.2);
+  font-family: 'Righteous', sans-serif;
+}
+
+.ant-form-item-label>label {
+  color:aliceblue;
+}
+
+.ant-modal-header {
+  background-color: #333;
+}
+
+.ant-modal-title {
+  color: aliceblue;
+  font-family: 'Righteous', sans-serif;
+}
+
+.ant-modal-close-x {
+  color: aliceblue;
+}
+
+.loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ant-message-notice {
+  margin-top: 5%;
+}
+
+.backArrow {
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+  font-size: 32px;
+  color: aliceblue;
+}
+
+.ant-menu {
+  max-height: 70%;
+  overflow-y: scroll;
+}
+
+.ant-menu::-webkit-scrollbar {
+  width: 0px;
+}

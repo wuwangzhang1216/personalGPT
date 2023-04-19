@@ -1,0 +1,21 @@
+{
+  "name": "personalgpt",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ant-design-vue": "^3.2.17",
+    "browserify-fs": "^1.0.0",
+    "vue": "^3.2.47",
+    "vue-router": "^4.1.6",
+    "vue3-cookies": "^1.0.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "vite": "^4.1.4"
+  }
+}
