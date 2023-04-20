@@ -273,9 +273,18 @@ export default {
     async handleCreation() {
       let res = await createConversation(this.conversationName);
       if (res.status === 201) {
+        let data = await res.json();
         message.success("Conversation created!");
         this.creationVisible = false;
         await this.refreshConversationList();
+        await this.getConversationById(data.id);
+        // go through the conversation list and find the conversation with the same id and change the selected key
+        for (let i = 0; i < this.conversationList.length; i++) {
+          if (this.conversationList[i].id === data.id) {
+            this.selectedKeys = [i];
+            break;
+          }
+        }
       }
       else {
         message.error("Network error!")

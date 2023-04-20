@@ -2,6 +2,7 @@
 import os
 import json
 from flask import Flask, request, jsonify, send_from_directory
+import datetime
 
 
 app = Flask(__name__)
@@ -30,6 +31,8 @@ def get_conversations():
             conversation_name = data["conversation_name"]
             # append the conversation id and name to the response
             res.append({"id": conversation_id, "name": conversation_name})
+    # sort the response by the conversation id
+    res.sort(key=lambda x: x["id"])
     # return the response
     return jsonify(res), 200
 
